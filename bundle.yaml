@@ -1,0 +1,23 @@
+services:
+  jenkins:
+    charm: "cs:~kos.tsakalozos/jenkins-1"
+    options:
+      plugins: "ghprb github bouncycastle-api credentials display-url-api git-client git github-api junit mailer matrix-project workflow-scm-step workflow-step-api plain-credentials scm-api script-security ssh-credentials structs token-macro ssh-agent javadoc antisamy-markup-formatter postbuildscript maven-plugin windows-slaves icon-shim matrix-auth"
+    num_units: 1
+    annotations:
+      gui-x: "550"
+      gui-y: "400"
+    to:
+      - "0"
+  cwr:
+    charm: "cs:~kos.tsakalozos/cwr-0"
+    annotations:
+      gui-x: "300"
+      gui-y: "400"
+series: xenial
+relations:
+  - ["cwr:jenkins", "jenkins"]
+machines:
+  "0":
+    constraints: "mem=7G"
+    series: "xenial"
