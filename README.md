@@ -48,8 +48,8 @@ information about these charms can by found in the following linked READMEs:
   * [jenkins][]
   * [cwr][] (colocated on the jenkins machine)
 
-[jenkins]: [https://jujucharms.com/jenkins/xenial/1]
-[cwr]: [https://jujucharms.com/u/kos.tsakalozos/cwr/0]
+[jenkins]: https://jujucharms.com/jenkins/xenial
+[cwr]: https://jujucharms.com/u/kos.tsakalozos/cwr
 
 
 # Getting Started
