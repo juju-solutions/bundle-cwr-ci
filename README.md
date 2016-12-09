@@ -87,7 +87,7 @@ To register the controller with the CWR charm, you will need to call the
 `register-controller` action and provide a human-friendly name and the
 registration token from the above `juju add-user` command.
 
-    juju run-action cwr/0 register-controller token=<controller-name> \
+    juju run-action cwr/0 register-controller name=<controller-name> \
         token=<registration-token>
 
 You should also setup a session with the charm store to allow CWR to release
