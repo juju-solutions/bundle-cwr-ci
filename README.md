@@ -152,6 +152,12 @@ This will instruct CWR to run a Jenkins job to test `awesome-charm` on your
 `aws` controller and release it to the **stable** channel any time you
 **tag** your source with a release tag.
 
+> Both actions above take an optional `reference-bundle` parameter (e.g.:
+`reference-bundle=~awesome-team/awesome-bundle`). If provided, CWR will build
+and deploy a local version of `awesome-charm` along with the reference bundle.
+Bundle tests will then be executed to verify the charm is working as expected
+within the bundle.
+
 
 # Summary
 
