@@ -1,0 +1,10 @@
+bundle:
+  name: cwr-ci
+  namespace: juju-solutions
+  release: true
+  to-channel: beta
+charm-upgrade:
+  cwr:
+    from-channel: edge
+    release: true
+    to-channel: beta
