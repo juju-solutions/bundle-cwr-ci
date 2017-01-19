@@ -67,7 +67,7 @@ Deploy this bundle from the charm store:
 Charms in this bundle provide status messages to indicate their readiness.
 Monitor the progress of the deployment with:
 
-    watch juju status
+    watch -c juju status --color
 
 > Note: Once the charms indicate they are ready, use `Ctrl-c` to terminate the
 `watch` command and proceed with the following instructions.
