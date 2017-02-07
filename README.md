@@ -122,65 +122,143 @@ Workflows that leverage this system are described in the next section.
 
 # Workflows
 
-## Manage the Charm Release Cycle from Github
+## CI Repository Changes
 
 ### Description
-Our goal is to build and test a charm/bundle every time code is committed to a
-repository. In light of a successful test, the resulting charm/bundle is pushed
-to the store and released in the `edge` channel. Similarly, releases to the
-`stable` channel can be made by tagging the code in Github when ready.
+The goal is to build and test a charm/bundle every time code is committed or
+tagged in a repository. In light of a successful test, the resulting
+charm/bundle is pushed to the store and released in the specified channel.
 
-The rationale of this workflow is that you want charm/bundle updates released as
-soon as you are confident that things are working as expected. With good tests,
-the CI system can give you that confidence and automatically handle the release
-process from a source repo to an `edge` or `stable` channel in the charm store.
+The rationale of this workflow is that you want charm/bundle updates released
+to appropriate channels as soon as you are confident that things are working as
+expected. With good tests, this CI system can give you that confidence and
+automatically handle the release process from a source repo to a channel in the
+charm store.
 
 ### Prerequisites
   * A charm/top charm layer, e.g.: `awesome-charm`
-  * Source repository on Github, e.g.: `http://github.com/myself/my-awesome-charm`
-  * A charm store namespace, e.g.: `awesome-team`
+  * Source repository, e.g.: `http://github.com/myself/my-awesome-charm`
+  * A reference bundle for exercising the charm to be tested
 
 ### Procedure
-To include `awesome-charm` in our CI pipeline, we need to call the
+To include `awesome-charm` in a **commit**-based CI pipeline, call the
 `build-on-commit` action:
 
     juju run-action cwr/0 build-on-commit \
         repo=http://github.com/myself/my-awesome-charm \
         charm-name=awesome-charm \
-        push-to-channel=edge \
-        lp-id=awesome-team \
-        controller=lxd
+        reference-bundle=~awesome-team/awesome-bundle
 
-This will instruct CWR to run a Jenkins job to test `awesome-charm` on your
-`lxd` controller and release it to the **edge** channel each time you
-**commit** to your repo.
-
-For releasing `awesome-charm` to the stable channel, we need a similar call to
-the `build-on-release` action:
+To include `awesome-charm` in a **tag**-based CI pipeline, call the
+`build-on-release` action:
 
     juju run-action cwr/0 build-on-release \
         repo=http://github.com/myself/my-awesome-charm \
         charm-name=awesome-charm \
-        push-to-channel=stable \
-        lp-id=awesome-team \
-        controller=aws
+        reference-bundle=~awesome-team/awesome-bundle
 
-This will instruct CWR to run a Jenkins job to test `awesome-charm` on your
-`aws` controller and release it to the **stable** channel any time you
-**tag** your source with a release tag.
 
-> Both actions above take an optional `reference-bundle` parameter (e.g.:
-`reference-bundle=~awesome-team/awesome-bundle`). If provided, CWR will build
-and deploy a local version of `awesome-charm` along with the reference bundle.
-Bundle tests will then be executed to verify the charm is working as expected
-within the bundle.
+By default, these actions will output a url that must be set as a hook in your
+repository (*webhooks* in Github parlance).
+
+Both of these actions will instruct CWR to setup a Jenkins job that will test
+`awesome-charm` on all registered controllers. This works by cloning the
+given `repo`, building a local copy of `charm-name`, deploying the given
+`reference-bundle` with the locally built charm, and executing the charm/bundle
+tests.
+
+Both actions support the following parameters:
+
+- `repo`: The url of the charm source repository.
+- `charm-name`: The name of the charm to test.
+- `reference-bundle`: Charm store location of a bundle to use to test the
+  given charm (e.g.: `~awesome-team/awesome-bundle`).
+  If not specified, the charm must specify a `reference-bundle` in its
+  `tests.yaml`.
+- `controller` (optional): Name of the registered controller to use for tests.
+  If not specified, tests will run on all registered controllers.
+- `repo-access` (optional): `webhook` or `poll`. By default, the action will
+  produce a URL to be used as a hook that will trigger the build on commit/tag.
+  Set this to `poll` to periodically (every 5 minutes) poll the repository
+  for changes.
+- `push-to-channel` (optional): Charm Store channel (e.g.: edge, beta,
+  candidate, stable) for releasing the charm if tests succeed.
+- `lp-id` (optional): The launchpad ID/namespace you want the charm released
+  under (e.g.: `~awesome-team`).
+
+## CI Charm Store Changes
+
+### Description
+The goal is to test a bundle every time an included charm is updated in the
+Charm Store. In light of a successful test, the resulting bundle is pushed to
+the store and released in the specified channel.
+
+The rationale of this workflow is that you want your bundle updated with the
+most recent charms from the store, and you want to release a new bundle to the
+appropriate channel as soon as you are confident that things are working as
+expected.
+
+### Prerequisites
+  * A bundle, e.g.: `awesome-bundle`
+  * Source repository, e.g.: `http://github.com/myself/my-awesome-bundle`
+
+### Procedure
+To include `awesome-bundle` in a **charm store**-based CI pipeline, call the
+`build-bundle` action:
+
+    juju run-action cwr/0 build-bundle \
+      repo=http://github.com/myself/my-awesome-bundle \
+      bundle-name=awesome-bundle
+
+This action supports the following parameters:
+
+  - `repo`: The url of the bundle source repository.
+  - `bundle-name`: The name of the bundle to test.
+  - `branch` (optional): The repository branch to extract when testing this
+    bundle.
+  - `controller` (optional): Name of the registered controller to use for tests.
+    If not specified, tests will run on all registered controllers.
+
+This action will create a Jenkins job that will clone your bundle source
+repository, inspect the `bundle.yaml`, and determine if there are any charms
+that can be updated. If an update is possible, a local `bundle.yaml` will be
+updated with new charm revisions and the bundle tests will be executed. If the
+tests are successful, this job can also release the bundle and updated charms
+to the specified channel in the store. This job will run periodically (every
+10 minutes).
+
+This action requires you to have a `ci-info.yaml` file in your bundle
+repository. For example:
+
+```
+bundle:
+  name: awesome-bundle
+  namespace: awesome-team
+  release: true
+  to-channel: beta
+charm-upgrade:
+  awesome-charm:
+    from-channel: edge
+    release: true
+    to-channel: beta
+```
+
+Under the `bundle` key, set the bundle `name`. If you wish to release the
+bundle upon a successful update and test cycle, set `release` to true and
+provide the desired `namespace` and `to-channel` where you want to release
+the bundle.
+
+Under the `charm-upgrade` key, specify the charms you want to watch. You may
+choose to upgrade only a subset of charms. For each charm, you may specify the
+channel to watch for new revisions (`from-channel`) and optionally the channel
+to release any upgraded charms (`to-channel`).
 
 
 # Summary
 
-We have described an example workflow that can leverage the charm/bundle CI system
-provided by this bundle. Do you have ideas or other workflows built around
-CWR? Please let us know by contacting us on the mailing list below.
+We have described two example workflows that can leverage the charm/bundle CI
+system provided by this bundle. Do you have ideas or other workflows built
+around CWR? Please let us know by contacting us on the mailing list below.
 
 # Resources
 
