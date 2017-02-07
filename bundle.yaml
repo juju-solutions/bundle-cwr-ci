@@ -10,6 +10,7 @@ services:
       - "0"
   cwr:
     charm: "cs:~juju-solutions/cwr"
+    expose: true
     annotations:
       gui-x: "300"
       gui-y: "400"
