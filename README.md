@@ -175,6 +175,8 @@ Both actions support the following parameters:
   given charm (e.g.: `~awesome-team/awesome-bundle`).
   If not specified, the charm must specify a `reference-bundle` in its
   `tests.yaml`.
+- `branch` (optional): The repository branch to extract when testing this
+  charm.
 - `controller` (optional): Name of the registered controller to use for tests.
   If not specified, tests will run on all registered controllers.
 - `repo-access` (optional): `webhook` or `poll`. By default, the action will
@@ -199,36 +201,10 @@ appropriate channel as soon as you are confident that things are working as
 expected.
 
 ### Prerequisites
-  * A bundle, e.g.: `awesome-bundle`
+  * A bundle, e.g.: `awesome-bundle`, with `ci-info.yaml` (details below)
   * Source repository, e.g.: `http://github.com/myself/my-awesome-bundle`
 
-### Procedure
-To include `awesome-bundle` in a **charm store**-based CI pipeline, call the
-`build-bundle` action:
-
-    juju run-action cwr/0 build-bundle \
-      repo=http://github.com/myself/my-awesome-bundle \
-      bundle-name=awesome-bundle
-
-This action supports the following parameters:
-
-  - `repo`: The url of the bundle source repository.
-  - `bundle-name`: The name of the bundle to test.
-  - `branch` (optional): The repository branch to extract when testing this
-    bundle.
-  - `controller` (optional): Name of the registered controller to use for tests.
-    If not specified, tests will run on all registered controllers.
-
-This action will create a Jenkins job that will clone your bundle source
-repository, inspect the `bundle.yaml`, and determine if there are any charms
-that can be updated. If an update is possible, a local `bundle.yaml` will be
-updated with new charm revisions and the bundle tests will be executed. If the
-tests are successful, this job can also release the bundle and updated charms
-to the specified channel in the store. This job will run periodically (every
-10 minutes).
-
-This action requires you to have a `ci-info.yaml` file in your bundle
-repository. For example:
+Example `ci-info.yaml`:
 
 ```
 bundle:
@@ -248,17 +224,45 @@ bundle upon a successful update and test cycle, set `release` to true and
 provide the desired `namespace` and `to-channel` where you want to release
 the bundle.
 
-Under the `charm-upgrade` key, specify the charms you want to watch. You may
-choose to upgrade only a subset of charms. For each charm, you may specify the
-channel to watch for new revisions (`from-channel`) and optionally the channel
-to release any upgraded charms (`to-channel`).
+Under the `charm-upgrade` key, specify the charm(s) you want the CI system to
+monitor. For each charm, specify the channel to watch for new revisions
+(`from-channel`) and optionally the channel to release any upgraded charms
+(`to-channel`).
+
+### Procedure
+To include `awesome-bundle` in a **charm store**-based CI pipeline, call the
+`build-bundle` action:
+
+    juju run-action cwr/0 build-bundle \
+      repo=http://github.com/myself/my-awesome-bundle \
+      bundle-name=awesome-bundle
+
+This action will create a Jenkins job that will clone your bundle source
+repository, inspect the `bundle.yaml`, and determine if there are any charms
+that can be updated. If an update is possible, a local `bundle.yaml` will be
+created with updated charm revisions and the bundle tests will be executed. If
+the tests are successful, this job can also release the bundle and updated
+charms to the specified channel in the store. This job will run periodically
+(every 10 minutes).
+
+This action supports the following parameters:
+
+  - `repo`: The url of the bundle source repository.
+  - `bundle-name`: The name of the bundle to test.
+  - `branch` (optional): The repository branch to extract when testing this
+    bundle.
+  - `controller` (optional): Name of the registered controller to use for tests.
+    If not specified, tests will run on all registered controllers.
+
+
 
 
 # Summary
 
 We have described two example workflows that can leverage the charm/bundle CI
-system provided by this bundle. Do you have ideas or other workflows built
-around CWR? Please let us know by contacting us on the mailing list below.
+system provided by this bundle. Do you have ideas or other workflows related
+to charm/bundle CI? Please let us know by contacting us on the mailing list
+below.
 
 # Resources
 
