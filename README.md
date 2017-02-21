@@ -62,7 +62,7 @@ bundle.
 
 Deploy this bundle from the charm store:
 
-    juju deploy cwr-ci
+    juju deploy cs:~juju-solutions/cwr-ci
 
 Charms in this bundle provide status messages to indicate their readiness.
 Monitor the progress of the deployment with:
