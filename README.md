@@ -185,10 +185,10 @@ action output showing this url:
     $ juju show-action-output <action id>
     results:
       hook:
-        url: http://<CWR_machine>:5000/ci/v1.0/pr-trigger/<job>/<uuid>
+        url: http://<cwr-ip>:5000/ci/v1.0/pr-trigger/<job>/<uuid>
     status: completed
 
-Replace `CWR_machine` with the public address of the `cwr` unit. If your
+Replace `cwr-ip` with the public address of the `cwr` unit. If your
 `cwr` unit is in a restricted network environment and not accessible to Github,
 the `cwr-charm-commit` and `cwr-charm-release` actions can be configured to
 poll your repository periodically (every 5 minutes) and trigger jobs when a
@@ -347,9 +347,10 @@ Cloud Weather Report stores detailed information about tests in the
 `/srv/artifacts` directory on the `cwr/0` unit. CWR provides an interface to
 view this information at:
 
-    http://<jenkins-ip>:5000
+    http://<cwr-ip>:5000
 
->Note: CWR is subordinate to Jenkins, hence the *jenkins-ip* url.
+>Note: CWR is subordinate to Jenkins, so the IP address of both applications
+will be the same.
 
 
 # Build Badges
@@ -362,15 +363,15 @@ used to set up the job. To view the badge URL, run:
     $ juju show-action-output <action-id>
     results:
       build:
-        badge: http://<CWR_machine>:5000/<job>/build-badge.svg
+        badge: http://<cwr-ip>:5000/<job>/build-badge.svg
       hook:
-        url: http://<CWR_machine>:5000/ci/v1.0/trigger/<job>/<uuid>
+        url: http://<cwr-ip>:5000/ci/v1.0/trigger/<job>/<uuid>
     status: completed
 
-Replace `CWR_machine` with the public address of the `cwr` unit. Given your
+Replace `cwr-ip` with the public address of the `cwr` unit. Given your
 README is using a markup language, using the badge should be as easy as:
 
-    [![Build Status](http://<CWR_machine>:5000/<job>/build-badge.svg)](http://<CWR_machine>:5000/)
+    [![Build Status](http://<cwr-ip>:5000/<job>/build-badge.svg)](http://<cwr-ip>:5000/)
 
 A build badge will report the results of Cloud Weather Report for all clouds
 on which the job was run. An example looks like this:
