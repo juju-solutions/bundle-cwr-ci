@@ -164,12 +164,13 @@ repo), call the `cwr-charm-release` action:
 
 To include `awesome-charm` in a **PR**-based CI pipeline (i.e.: tests are
 triggered any time a pull request is created in a Github charm source repo),
-call the `cwr-charm-commit` action:
+call the `cwr-charm-pr` action:
 
     juju run-action cwr/0 cwr-charm-pr \
         repo=http://github.com/myself/my-awesome-charm \
         charm-name=awesome-charm \
-        reference-bundle=~awesome-team/awesome-bundle
+        reference-bundle=~awesome-team/awesome-bundle \
+        oauth-token=<token string>
 
 Each of these actions will instruct CWR to setup a Jenkins job that will test
 `awesome-charm` on all registered controllers. This works by cloning the
@@ -237,7 +238,7 @@ Except where noted, the above actions support the following parameters:
 
 - oauth-token (optional): Github [token][gh-token] to use to comment on pull
   requests. If not specified, the CWR/CI system will not record pass/fail
-  status on pull requests.
+  status as a comment on the pull request.
   >Note: Only available for `cwr-charm-pr`.
 
 [gh-token]: https://help.github.com/articles/creating-an-access-token-for-command-line-use/
@@ -301,8 +302,13 @@ repository, inspect the `bundle.yaml`, and determine if there are any charms
 that can be updated. If an update is possible, a local `bundle.yaml` will be
 created with updated charm revisions and the bundle tests will be executed. If
 the tests are successful, this job can also release the bundle and updated
-charms to the specified channel in the store. This job will run periodically
-(every 10 minutes).
+charms to the specified channels in the store.
+
+The job will run periodically (every 10 minutes), but it can also be triggered
+via a webhook. The webhook URL is shown in the action output
+and requires you to perform a POST request with at least an empty payload
+(compatible with the
+[GitHub Push Event Webhook](https://developer.github.com/v3/activity/events/types/#pushevent)).
 
 This action supports the following parameters:
 
@@ -321,7 +327,7 @@ This action supports the following parameters:
   bundle.
 
 
-# Job Status and Results
+# Job Status and Logs
 
 ## Jenkins
 
@@ -346,10 +352,41 @@ view this information at:
 >Note: CWR is subordinate to Jenkins, hence the *jenkins-ip* url.
 
 
+# Build Badges
+
+CWR/CI offers an SVG badge showing the current test status of a charm/bundle.
+An example use of this badge would be for reporting CI status in README files.
+Each Jenkins job has its own build badge URL shown as part of the action output
+used to set up the job. To view the badge URL, run:
+
+    $ juju show-action-output <action-id>
+    results:
+      build:
+        badge: http://<CWR_machine>:5000/<job>/build-badge.svg
+      hook:
+        url: http://<CWR_machine>:5000/ci/v1.0/trigger/<job>/<uuid>
+    status: completed
+
+Replace `CWR_machine` with the public address of the `cwr` unit. Given your
+README is using a markup language, using the badge should be as easy as:
+
+    [![Build Status](http://<CWR_machine>:5000/<job>/build-badge.svg)](http://<CWR_machine>:5000/)
+
+A build badge will report the results of Cloud Weather Report for all clouds
+on which the job was run. An example looks like this:
+
+![alt text](https://camo.githubusercontent.com/ebf2531c70134716f3778449305fdf3b3a4be015/68747470733a2f2f63646e2e7261776769742e636f6d2f6a6f686e7363612f62366639623364313230313937363132656135313639666664343531663635352f7261772f353966613633656132386336636664656361313366326161383734303666653930363730653163392f6275696c642d62616467652e737667)
+
+Green indicates tests passed on a particular cloud; red indicates failing tests;
+yellow/orange indicates an infrastructure error (e.g., deployment failure).
+
+>Note: the build badge is currently not supported for the `cwr-charm-pr` action.
+
+
 # Summary
 
-We have described a few example workflows that can leverage the charm/bundle CI
-system provided by this bundle. Do you have questions, ideas, or other
+We have described a few example workflows that can leverage the charm/bundle
+CI system provided by this bundle. Do you have questions, ideas, or other
 workflows related to charm/bundle CI? Join us in the community or find more
 technical information from the resources below.
 
