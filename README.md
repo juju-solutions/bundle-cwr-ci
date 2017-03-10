@@ -54,9 +54,9 @@ information about these charms can by found in the following linked READMEs:
 
 # Getting Started
 
-> Note: A bootstrapped Juju controller is required. If Juju is not yet set up,
-please follow the [getting-started][] instructions prior to deploying this
-bundle.
+> Note: This bundle requires Juju 2.1.0 (or higher) and a bootstrapped Juju
+controller. If Juju is not yet set up, please follow the
+[getting-started][] instructions prior to deploying this bundle.
 
 [getting-started]: https://jujucharms.com/docs/stable/getting-started
 
@@ -90,11 +90,8 @@ action. Provide the controller name and the registration token from the above
     juju run-action cwr/0 register-controller name=<controller-name> \
         token=<registration-token>
 
-If you're using a cloud that requires credentials (i.e., anything other than
-the LXD provider), you will need to provide those credentials as base64-encoded
-YAML. You can find your credentials in `~/.local/share/juju/credentials.yaml`,
-but you may want to extract and share just the portions that will be
-used with the CI system.  In the future, Juju should provide a way to
+Clouds require credentials to allow the jenkins user to allocate resources
+on your behalf. In the future, Juju should provide a way to
 share access to the credentials without having to share the credentials
 themselves. Until then, inform CWR of your controller credentials with the
 `set-credentials` action:
